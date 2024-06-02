@@ -1,0 +1,39 @@
+.navbar-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    margin-top: 2em;
+    margin-bottom: 2em;
+  }
+  
+  .navbar-secondary {
+    display: none;
+  }
+  .menu-open{
+    display: none;
+  }
+  
+  @media screen and (max-width: 850px) {
+    .navbar-main {
+      display: none !important;
+    }
+    .menu-open{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+  
+    .navbar-secondary {
+      margin: auto;
+      width: 80% !important;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2em;
+    }
+  
+    .menu-open .navbar-main {
+      display: flex !important;
+    }
+  }
+  

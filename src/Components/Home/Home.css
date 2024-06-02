@@ -1,0 +1,38 @@
+.add-blog{
+    width:45%;
+    height: 50vh; 
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-direction: column;
+}
+.blog-card{
+    
+    width: 45%;
+    min-width: 45%;
+}
+
+@media screen and (max-width: 1200px) {
+    .blog-card{
+        width: 80% !important;
+    }
+    .add-blog{
+        width: 80% !important;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    .title{
+        font-size: 22px !important;
+    }
+    .desc{
+        font-size: 15px !important;
+    }
+    .blog-card{
+        width: 80% !important;
+    }
+    .add-blog{
+        display: flex !important;
+        margin: auto;
+    }
+}

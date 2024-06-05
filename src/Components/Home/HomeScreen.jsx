@@ -13,7 +13,7 @@ import Navbar from "../Navbar/Navbar";
 import { useSelector, useDispatch } from "react-redux";
 import LoadingButton from '@mui/lab/LoadingButton';
 import "./Home.css";
-import { addItem, fetchAllItem, addComment } from "./HomeSlice";
+import { addItem, fetchAllItem, addComment, followUser } from "./HomeSlice";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
@@ -108,6 +108,14 @@ const HomeScreen = () => {
   const filteredBlogs = blogsState?.items?.blogs?.filter((blog) =>
     blog.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleFollow=(id)=>{
+    console.log('user to follow id', id)
+    dispatch(followUser(id)).then((res)=>{
+      console.log(res)
+      dispatch(fetchAllItem())
+    })
+  }
   return (
     <>
       <Navbar setSearchTerm={setSearchTerm}/>
@@ -166,25 +174,29 @@ const HomeScreen = () => {
                 sx={{ height: showComments ? "auto" : "35em", mb: 5, mt: 5 }}
               >
                 <Box
-                 onClick={() => handleUserProfile(item)}
                   sx={{
                     cursor : "pointer",
                     display: "flex",
+                    justifyContent: "space-between", 
                     alignItems: "center",
                     backgroundColor: "#A7E2E6",
                     padding: 2,
                   }}
                 >
+                  <Box sx={{display:"flex", alignItems:'center'}}>
                   <Avatar
+                  onClick={() => handleUserProfile(item)}
                     style={{ height: "60px", width: "60px", marginRight: 10 }} src={item.user.file}
-                  />
+                    />
                   <Typography
                     fontWeight="bold"
                     color="black"
                     onClick={() => handleUserProfile(item)}
-                  >
+                    >
                     {item.user.name}
                   </Typography>
+                    </Box>
+                  <Button sx={{display: item.user._id === userDetails._id ? "none":"block" }} variant={item.isFollowing ? "outlined":"contained"} onClick={()=>handleFollow(item.user._id)}>{item.isFollowing ? "Following": "Follow"}</Button>
                 </Box>
 
                 <Box

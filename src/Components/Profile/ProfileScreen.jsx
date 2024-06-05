@@ -9,42 +9,36 @@ import {
   Button,
   Modal,
 } from "@mui/material";
-import LoadingButton from '@mui/lab/LoadingButton';
-import { useLocation } from "react-router-dom";
+import HorizontalRuleRoundedIcon from "@mui/icons-material/HorizontalRuleRounded";
+import LoadingButton from "@mui/lab/LoadingButton";
+import { useLocation,useNavigate } from "react-router-dom";
 import InputAdornment from "@mui/material/InputAdornment";
 import Navbar from "../Navbar/Navbar";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import profileImage from "../../../public/profile.png";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector, useDispatch, connect } from "react-redux";
 import "./Profile.css";
 import {
   deleteItem,
   fetchAllItem,
   fetchUserItem,
+  openSlack,
   updatePost,
+  getAllChannels,
+  setChannel,
 } from "./ProfileSlice";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import EditIcon from "@mui/icons-material/Edit";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
 import DeleteIcon from "@mui/icons-material/Delete";
+import axios from "axios";
 const ProfileScreen = () => {
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "30%",
-    height: "40%",
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    p: 4,
-    display: "flex",
-    alignItems: "center",
-    flexDirection: "column",
-    justifyContent: "center",
-  };
+  const navigate  = useNavigate()
   const [open, setOpen] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
   const inputRef = useRef(null);
@@ -61,6 +55,8 @@ const ProfileScreen = () => {
   const profileState = useSelector((state) => state.profileState);
   const [userDetails, setUserDeatils] = useState({});
   const [showComments, setShowComments] = useState(true);
+  const [slackConnected, setSlackConnected] = useState(false);
+  const [channels, setChannels] = useState([]);
   const [blogDetails, setBlogDetails] = useState({
     title: "",
     description: "",
@@ -69,9 +65,9 @@ const ProfileScreen = () => {
   const handleCommentIconClick = () => {
     setShowComments(showComments);
   };
-  const handleImageClick =()=>{
+  const handleImageClick = () => {
     inputRef.current.click();
-  }
+  };
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -102,14 +98,18 @@ const ProfileScreen = () => {
     if (userID) {
       dispatch(fetchUserItem({ userId: userID?.user?._id }));
     } else {
-        setProfileData({
-            name: userDetails.name,
-            email: userDetails.email,
-          });
-          setImage(userDetails.file)
+      getChannels()
+      setProfileData({
+        name: userDetails.name,
+        email: userDetails.email,
+      });
+      setImage(userDetails.file);
       dispatch(fetchAllItem())
         .then((res) => {
           console.log("responseFromPi", res);
+          if (res.payload.slackChannelId) {
+            setSlackConnected(true);
+          }
         })
         .catch((err) => {
           console.log(err);
@@ -147,7 +147,7 @@ const ProfileScreen = () => {
 
   const handleUpdateSubmit = (e) => {
     e.preventDefault();
-    setLoading(true)
+    setLoading(true);
     dispatch(updatePost({ postId: formData.id, payload: formData })).then(
       (res) => {
         dispatch(fetchAllItem());
@@ -179,17 +179,42 @@ const ProfileScreen = () => {
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImage(reader.result);
-        };
-        reader.readAsDataURL(file);
-      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const filteredBlogs = profileState?.items?.blogs?.filter((blog) =>
     blog.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const connectSlack = () => {
+    dispatch(openSlack()).then((res) => {
+      // console.log(res.payload.redirectUrl)
+      window.location.href = res.payload.redirectUrl;
+    });
+  };
+
+  const getChannels = () => {
+    dispatch(getAllChannels()).then((res) => {
+      console.log(res);
+      setChannels(res.payload);
+    });
+  };
+
+  const handleSetChannel = (id) => {
+    dispatch(setChannel({ channelId: id })).then((res) => {
+      console.log("selected channel response", res);
+    });
+  };
+
+  const showFollows =(list, type)=>{
+    navigate('/follow',{ state: { list: list, type :type } })
+    console.log('followers list',list)
+  }
   return (
     <>
       <Navbar setSearchTerm={setSearchTerm} />
@@ -207,6 +232,32 @@ const ProfileScreen = () => {
           <Typography>
             {userID ? userID.user.email : userDetails.email}
           </Typography>
+          <Box sx={{ display: slackConnected || userID ? 'none': 'block',minWidth: '400px' }}>
+            <FormControl fullWidth>
+              <InputLabel id="demo-simple-select-label">Available Channels</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                label="Age"
+              >
+                 {channels?.map((channel) => {
+              return (
+                <MenuItem onClick={() => handleSetChannel(channel.id)}>{channel.name}</MenuItem>
+              );
+            })}
+              </Select>
+            </FormControl>
+          </Box>
+          <Typography
+            sx={{ display: slackConnected || userID ? 'none': 'block', cursor: "pointer", color: "#0047C0" }}
+            onClick={slackConnected ? getChannels : connectSlack}
+          >
+            {slackConnected
+              ? profileState.items.slackChannelId
+              : "Connect Slack"}
+          </Typography>
+          <Box>
+          </Box>
           <Typography
             sx={{
               cursor: "pointer",
@@ -217,8 +268,23 @@ const ProfileScreen = () => {
           >
             Edit Profile
           </Typography>
+
+          <Box sx={{ display: "flex" }}>
+            <Box>
+            <Typography sx={{fontSize:'2em', cursor:'pointer'}} onClick={()=>showFollows(profileState.items.followers, 'Followers')}>{profileState?.items?.followers?.length}</Typography>
+            <Typography>Followers</Typography>
+            </Box>
+            <HorizontalRuleRoundedIcon sx={{ fontSize:'3em',transform: "rotate(90deg)" }} />
+            <Box>
+            <Typography sx={{fontSize:'2em', cursor:'pointer'}} onClick={()=>showFollows(profileState.items.following,'Following')}>{profileState?.items?.following?.length}</Typography>
+            <Typography>Following</Typography>
+            </Box>
+          </Box>
         </Card>
-        <Typography variant="h3" sx={{ my: 2  , borderBottom: "4px solid black" }}>
+        <Typography
+          variant="h3"
+          sx={{ my: 2, borderBottom: "4px solid black" }}
+        >
           {userID ? `${userID.user.name}'s Blogs` : "My Blogs"}
         </Typography>
 
@@ -400,14 +466,13 @@ const ProfileScreen = () => {
               </Button> */}
 
               <LoadingButton
-                 loading={loading}
+                loading={loading}
                 sx={{
-                    margin: "0 auto",
-                    width: "10rem",
-                    height: "2rem",
-                  }}
+                  margin: "0 auto",
+                  width: "10rem",
+                  height: "2rem",
+                }}
                 loadingPosition="start"
-                
                 variant="contained"
                 type="submit"
               >
@@ -434,10 +499,15 @@ const ProfileScreen = () => {
               }}
               onSubmit={handleProfileUpdate}
             >
-            <Box sx={{ my: 2}} onClick={handleImageClick}>
-                <input type="file" ref={inputRef} onChange={handleImageChange} style={{display:"none"}} />
-            <Avatar src={image} sx={{height:100,width:100}}/>
-            </Box>
+              <Box sx={{ my: 2 }} onClick={handleImageClick}>
+                <input
+                  type="file"
+                  ref={inputRef}
+                  onChange={handleImageChange}
+                  style={{ display: "none" }}
+                />
+                <Avatar src={image} sx={{ height: 100, width: 100 }} />
+              </Box>
               <Box sx={{ my: 2, width: "95%" }}>
                 <TextField
                   sx={{ width: "100%" }}

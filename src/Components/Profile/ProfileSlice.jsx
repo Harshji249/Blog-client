@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const baseURL = "https://blog-server-g55n.onrender.com/api/blog"; 
+const baseURL = "http://localhost:3000/api"; 
 
 const initialState = {
   items: [],
@@ -22,7 +22,7 @@ export const deleteItem = createAsyncThunk(
   async (postId, { rejectWithValue }) => {
     try {
         console.log('postId',postId)
-      const response = await axios.delete(baseURL + `/deletepost/${postId.postId}`,{
+      const response = await axios.delete(baseURL + `/blog/deletepost/${postId.postId}`,{
             headers: {
                 'auth-token': localStorage.getItem('auth-token')
             }});
@@ -38,7 +38,7 @@ export const fetchAllItem = createAsyncThunk(
   "blog/viewmypost",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(baseURL + `/viewmypost`,{
+      const response = await axios.get(baseURL + `/blog/viewmypost`,{
         headers: {
             'auth-token': localStorage.getItem('auth-token')
           }
@@ -51,11 +51,63 @@ export const fetchAllItem = createAsyncThunk(
   }
 );
 
+export const openSlack = createAsyncThunk(
+  "auth/slack",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(baseURL + `/auth/slack`,{
+        headers: {
+            'auth-token': localStorage.getItem('auth-token')
+          }
+      });
+      return response?.data;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(error?.response?.data);
+    }
+  }
+);
+
+export const getAllChannels = createAsyncThunk(
+  "auth/slack/channels",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(baseURL + `/auth/slack/channels`,{
+        headers: {
+            'auth-token': localStorage.getItem('auth-token')
+          }
+      });
+      return response?.data;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(error?.response?.data);
+    }
+  }
+);
+
+export const setChannel = createAsyncThunk(
+  "auth/slack/set-channel",
+  async (channelId, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(baseURL + `/auth/slack/set-channel`,channelId,{
+        headers: {
+            'auth-token': localStorage.getItem('auth-token')
+          }
+      });
+      return response?.data;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(error?.response?.data);
+    }
+  }
+);
+
+
 export const fetchUserItem = createAsyncThunk(
     "blog/viewuserpost",
     async ({userId}, { rejectWithValue }) => {
       try {
-        const response = await axios.get(baseURL + `/viewuserpost/${userId}`,{
+        const response = await axios.get(baseURL + `/blog/viewuserpost/${userId}`,{
           headers: {
               'auth-token': localStorage.getItem('auth-token')
             }
@@ -72,7 +124,7 @@ export const updatePost = createAsyncThunk(
   "blog/updatepost",
   async ({ postId, payload }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(baseURL + `/updatepost/${postId}`, { payload }, {
+      const response = await axios.put(baseURL + `/blog/updatepost/${postId}`, { payload }, {
         headers: {
           'auth-token': localStorage.getItem('auth-token')
         }
@@ -89,7 +141,7 @@ export const editUser = createAsyncThunk(
     "blog/edituser",
     async ({ userId, payload }, { rejectWithValue }) => {
       try {
-        const response = await axios.put(baseURL + `/edituser/${userId}`, { payload }, {
+        const response = await axios.put(baseURL + `/blog/edituser/${userId}`, { payload }, {
           headers: {
             'auth-token': localStorage.getItem('auth-token')
           }

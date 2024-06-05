@@ -8,6 +8,7 @@ import LoginReducer from './Components/Login/LoginSlice.jsx'
 import SignupReducer from './Components/Signup/SignupSlice.jsx'
 import HomeReducer from './Components/Home/HomeSlice.jsx'
 import ProfileReducer from './Components/Profile/ProfileSlice.jsx'
+import FollowersReducer from './Components/Followers/FollowersSlice.jsx';
 
 const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ const store = configureStore({
     signupUserState: SignupReducer,
     blogsState: HomeReducer,
     profileState: ProfileReducer,
+    followState : FollowersReducer
   }
 })
 

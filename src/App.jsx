@@ -6,6 +6,7 @@ import SignupScreen from './Components/Signup/SignupScreen';
 import Protected from './ProtectedRoutes';
 import HomeScreen from './Components/Home/HomeScreen';
 import ProfileScreen from './Components/Profile/ProfileScreen';
+import FollowersScreen from './Components/Followers/FollowersScreen';
 
 function App() {
 
@@ -17,7 +18,7 @@ function App() {
         <Route path='/signup' element={<Protected Components={<SignupScreen />} />}  />
         <Route path='/home' element={<Protected Components={<HomeScreen />} />}  />
         <Route path='/profile' element={<Protected Components={<ProfileScreen />} />}  />
-        {/* <Route path='/addblog' element={<Protected Components={<PostScreen />} />}  /> */}
+        <Route path='/follow' element={<Protected Components={<FollowersScreen />} />}  />
          </Routes>
       </Router> 
     </>

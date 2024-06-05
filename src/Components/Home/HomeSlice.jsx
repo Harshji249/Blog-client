@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const baseURL = "https://blog-server-g55n.onrender.com/api/blog"; 
+const baseURL = "http://localhost:3000/api/blog";
 
 const initialState = {
   items: [],
@@ -11,16 +11,19 @@ const initialState = {
   fetchAllItemError: "",
   addCommentStatus: "",
   addCommentError: "",
+  followUserStatus: "",
+  followUserError: "",
 };
 
 export const addItem = createAsyncThunk(
   "blog/addnewpost",
   async (blog, { rejectWithValue }) => {
     try {
-      const response = await axios.post(baseURL + "/addnewpost", blog,{
-            headers: {
-                'auth-token': localStorage.getItem('auth-token')
-            }});
+      const response = await axios.post(baseURL + "/addnewpost", blog, {
+        headers: {
+          "auth-token": localStorage.getItem("auth-token"),
+        },
+      });
       return response?.data;
     } catch (error) {
       console.log(error);
@@ -33,7 +36,11 @@ export const fetchAllItem = createAsyncThunk(
   "blog/viewallpost",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(baseURL + "/viewallpost");
+      const response = await axios.get(baseURL + "/viewallpost",{
+        headers: {
+          "auth-token": localStorage.getItem("auth-token"),
+        },
+      });
       return response?.data;
     } catch (error) {
       console.log(error);
@@ -46,10 +53,31 @@ export const addComment = createAsyncThunk(
   "blog/addcomment",
   async ({ postId, content }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(baseURL + `/addcomment/${postId}`, { content }, {
-        headers: {
-          'auth-token': localStorage.getItem('auth-token')
+      const response = await axios.post(
+        baseURL + `/addcomment/${postId}`,
+        { content },
+        {
+          headers: {
+            "auth-token": localStorage.getItem("auth-token"),
+          },
         }
+      );
+      return response?.data;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(error?.response?.data);
+    }
+  }
+);
+
+export const followUser = createAsyncThunk(
+  "blog/follow",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(baseURL + `/follow/${id}`, {},{
+        headers: {
+          "auth-token": localStorage.getItem("auth-token"),
+        },
       });
       return response?.data;
     } catch (error) {
@@ -104,6 +132,20 @@ const HomeSlice = createSlice({
         // Handle rejected addition of comment if needed
         state.addCommentStatus = "rejected";
         state.addCommentError = action.payload;
+      })
+      .addCase(followUser.pending, (state) => {
+        state.followUserStatus = "pending";
+        state.followUserError = "";
+      })
+      .addCase(followUser.fulfilled, (state, action) => {
+        // Handle successful addition of comment if needed
+        state.followUserStatus = "success";
+        state.followUserError = "";
+      })
+      .addCase(followUser.rejected, (state, action) => {
+        // Handle rejected addition of comment if needed
+        state.followUserStatus = "rejected";
+        state.followUserError = action.payload;
       });
   },
 });
